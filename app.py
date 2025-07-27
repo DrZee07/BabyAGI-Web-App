@@ -4,9 +4,11 @@ from collections import deque
 from typing import Dict, List, Optional
 
 import streamlit as st
-from langchain import LLMChain, OpenAI, PromptTemplate
+from langchain.chains import LLMChain
+from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import BaseLLM
+from langchain.llms.base import BaseLLM
 from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, Field
