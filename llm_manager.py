@@ -8,8 +8,18 @@ from typing import Dict, List, Any, Optional, Union
 from enum import Enum
 from dataclasses import dataclass
 from langchain.llms.base import BaseLLM
-from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
+
+# Updated imports for newer LangChain versions
+try:
+    from langchain_openai import OpenAI, ChatOpenAI
+except ImportError:
+    # Fallback for older versions
+    try:
+        from langchain.llms import OpenAI
+        from langchain.chat_models import ChatOpenAI
+    except ImportError:
+        from langchain_community.llms import OpenAI
+        from langchain_community.chat_models import ChatOpenAI
 
 
 class LLMProvider(Enum):
@@ -103,7 +113,7 @@ class LLMManager:
         
         elif config.provider == LLMProvider.ANTHROPIC:
             try:
-                from langchain.chat_models import ChatAnthropic
+                from langchain_anthropic import ChatAnthropic
                 return ChatAnthropic(
                     model=config.model_name,
                     anthropic_api_key=config.api_key,
@@ -111,7 +121,16 @@ class LLMManager:
                     temperature=config.temperature
                 )
             except ImportError:
-                raise ImportError("Anthropic support requires: pip install anthropic")
+                try:
+                    from langchain.chat_models import ChatAnthropic
+                    return ChatAnthropic(
+                        model=config.model_name,
+                        anthropic_api_key=config.api_key,
+                        max_tokens=config.max_tokens,
+                        temperature=config.temperature
+                    )
+                except ImportError:
+                    raise ImportError("Anthropic support requires: pip install langchain-anthropic anthropic")
         
         elif config.provider == LLMProvider.LOCAL:
             try:
@@ -126,7 +145,7 @@ class LLMManager:
         
         elif config.provider == LLMProvider.HUGGINGFACE:
             try:
-                from langchain.llms import HuggingFacePipeline
+                from langchain_huggingface import HuggingFacePipeline
                 return HuggingFacePipeline.from_model_id(
                     model_id=config.model_name,
                     task="text-generation",
@@ -136,7 +155,18 @@ class LLMManager:
                     }
                 )
             except ImportError:
-                raise ImportError("HuggingFace support requires: pip install transformers torch")
+                try:
+                    from langchain.llms import HuggingFacePipeline
+                    return HuggingFacePipeline.from_model_id(
+                        model_id=config.model_name,
+                        task="text-generation",
+                        model_kwargs={
+                            "temperature": config.temperature,
+                            "max_length": config.max_tokens
+                        }
+                    )
+                except ImportError:
+                    raise ImportError("HuggingFace support requires: pip install langchain-huggingface transformers torch")
         
         else:
             raise ValueError(f"Unsupported provider: {config.provider}")
@@ -350,4 +380,3 @@ class LLMManager:
             "average_cost_per_token": total_cost / total_tokens if total_tokens > 0 else 0,
             "cost_breakdown": cost_breakdown
         }
-

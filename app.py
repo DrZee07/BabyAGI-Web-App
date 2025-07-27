@@ -7,12 +7,22 @@ import time
 
 import streamlit as st
 from langchain.chains import LLMChain
-from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms.base import BaseLLM
 from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStore
+
+# Updated imports for newer LangChain versions
+try:
+    from langchain_openai import OpenAI, OpenAIEmbeddings
+except ImportError:
+    # Fallback for older versions
+    try:
+        from langchain.llms import OpenAI
+        from langchain.embeddings.openai import OpenAIEmbeddings
+    except ImportError:
+        from langchain_community.llms import OpenAI
+        from langchain_community.embeddings import OpenAIEmbeddings
 from pydantic import BaseModel, Field
 
 # Import advanced features
